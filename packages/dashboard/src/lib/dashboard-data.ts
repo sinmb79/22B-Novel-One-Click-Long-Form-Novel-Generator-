@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 
 interface NovelConfig {
   projectName: string;
@@ -10,6 +10,7 @@ interface NovelConfig {
 export interface DashboardProjectSummary {
   name: string;
   projectDirectory: string;
+  displayPath: string;
   chapterCount: number;
   exportCount: number;
   language: string;
@@ -18,6 +19,7 @@ export interface DashboardProjectSummary {
 export interface DashboardProjectDetail {
   name: string;
   projectDirectory: string;
+  displayPath: string;
   language: string;
   chapters: Array<{
     chapterNumber: number;
@@ -54,6 +56,11 @@ function compareNumerically(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
 
+function toDisplayPath(rootDirectory: string, projectDirectory: string): string {
+  const value = relative(rootDirectory, projectDirectory).replaceAll("\\", "/");
+  return value.length > 0 ? `./${value}` : ".";
+}
+
 export function resolveDashboardRootDirectory(): string {
   if (process.env.NOVEL_DASHBOARD_ROOT) {
     return resolve(process.env.NOVEL_DASHBOARD_ROOT);
@@ -81,6 +88,7 @@ export async function discoverNovelProjects(
     summaries.push({
       name: config.projectName,
       projectDirectory,
+      displayPath: toDisplayPath(rootDirectory, projectDirectory),
       chapterCount: chapterFiles.filter((entry) => entry.endsWith(".md")).length,
       exportCount: exportFiles.length,
       language: config.language,
@@ -93,6 +101,7 @@ export async function discoverNovelProjects(
 export async function readNovelProjectDetail(
   projectDirectory: string,
 ): Promise<DashboardProjectDetail> {
+  const rootDirectory = resolveDashboardRootDirectory();
   const config = await readJson<NovelConfig>(join(projectDirectory, ".novelrc.json"));
   const chapterDirectory = join(projectDirectory, "output", "chapters");
   const exportDirectory = join(projectDirectory, "output", "exports");
@@ -116,6 +125,7 @@ export async function readNovelProjectDetail(
   return {
     name: config.projectName,
     projectDirectory,
+    displayPath: toDisplayPath(rootDirectory, projectDirectory),
     language: config.language,
     chapters,
     exports: exports.sort(compareNumerically),

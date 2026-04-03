@@ -5,6 +5,11 @@
 이 프로젝트는 "소설 초안 한 편을 뽑는 스크립트"가 아니라, 장편 제작 흐름 전체를 다루기 위한 작업 공간입니다.  
 Author DNA로 작품 성격을 정의하고, 챕터를 생성하고, 메모리 DB에 누적하고, 품질 리뷰를 돌리고, 마지막에는 EPUB/PDF까지 뽑을 수 있게 구성했습니다.
 
+관련 문서
+
+- [릴리즈 노트](./RELEASE_NOTES.ko.md)
+- [English documentation](./README.en.md)
+
 ## 1. 이 프로젝트가 하는 일
 
 ### 한 줄 요약
@@ -24,6 +29,16 @@ flowchart LR
   D --> G
   F --> G
 ```
+
+### 화면 미리보기
+
+홈 대시보드
+
+![대시보드 홈](./assets/dashboard-home.png)
+
+프로젝트 상세
+
+![대시보드 프로젝트 상세](./assets/dashboard-project.png)
 
 ### 현재 들어있는 핵심 기능
 

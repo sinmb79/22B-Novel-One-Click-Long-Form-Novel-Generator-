@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { discoverNovelProjects, resolveDashboardRootDirectory } from "../src/lib/dashboard-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const rootDirectory = resolveDashboardRootDirectory();
   const projects = await discoverNovelProjects(rootDirectory);
@@ -31,7 +33,7 @@ export default async function DashboardPage() {
               <article className="card">
                 <span className="eyebrow">{project.language.toUpperCase()}</span>
                 <h2>{project.name}</h2>
-                <p className="muted">{project.projectDirectory}</p>
+                <p className="muted">{project.displayPath}</p>
                 <div className="stats">
                   <div className="stat">
                     <strong>{project.chapterCount}</strong>

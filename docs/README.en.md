@@ -5,6 +5,11 @@ A TypeScript-based workspace for planning, generating, reviewing, exporting, and
 This is not just a "generate one chapter" script.  
 It is structured as a full production workspace for long-form fiction: define Author DNA, generate chapters, store memory in SQLite, run quality review, and export the result as EPUB or PDF.
 
+Related documents
+
+- [Release Notes](./RELEASE_NOTES.en.md)
+- [한국어 문서](./README.ko.md)
+
 ## 1. What This Project Does
 
 ### One-line summary
@@ -24,6 +29,16 @@ flowchart LR
   D --> G
   F --> G
 ```
+
+### Preview
+
+Dashboard home
+
+![Dashboard Home](./assets/dashboard-home.png)
+
+Project detail
+
+![Dashboard Project Detail](./assets/dashboard-project.png)
 
 ### Core features currently included
 
