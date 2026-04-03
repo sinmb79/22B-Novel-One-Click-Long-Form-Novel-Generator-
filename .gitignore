@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+projects/
+.next/
+out/
+*.log
+docs/superpowers/

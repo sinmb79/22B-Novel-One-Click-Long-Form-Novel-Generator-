@@ -1,0 +1,20 @@
+{
+  "name": "22b-novel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @22b/engine && npm run build --workspace @22b/mcp-server && npm run build --workspace @22b/cli && npm run build --workspace @22b/dashboard",
+    "dashboard:dev": "npm run dev --workspace @22b/dashboard",
+    "dashboard:start": "npm run start --workspace @22b/dashboard",
+    "test": "node --disable-warning=ExperimentalWarning ./node_modules/vitest/vitest.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
