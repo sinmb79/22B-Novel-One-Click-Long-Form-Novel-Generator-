@@ -373,4 +373,31 @@ describe("runCli", () => {
 
     expect(lines.join("\n")).toMatch(/\.json$/);
   });
+
+  it("runs the quickbook command end-to-end with the stub provider", async () => {
+    const rootDirectory = await mkdtemp(join(tmpdir(), "22b-cli-"));
+    tempDirectories.push(rootDirectory);
+
+    const originalRoot = process.env.NOVEL_PROJECTS_ROOT;
+    const originalProvider = process.env.NOVEL_PROVIDER;
+
+    process.env.NOVEL_PROJECTS_ROOT = rootDirectory;
+    process.env.NOVEL_PROVIDER = "stub";
+
+    try {
+      const lines = await runCli([
+        "quickbook",
+        "--topic",
+        "기억을 거래하는 항구 도시의 생존담",
+        "--chapters",
+        "2",
+      ]);
+
+      expect(lines.join("\n")).toMatch(/EPUB/i);
+      expect(lines.join("\n")).toMatch(/총 비용|Total cost/i);
+    } finally {
+      process.env.NOVEL_PROJECTS_ROOT = originalRoot;
+      process.env.NOVEL_PROVIDER = originalProvider;
+    }
+  });
 });

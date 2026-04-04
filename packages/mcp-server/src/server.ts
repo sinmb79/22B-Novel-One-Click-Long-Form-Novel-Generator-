@@ -5,6 +5,7 @@ import type { ZodTypeAny } from "zod";
 import { createInitTool } from "./tools/init.js";
 import { createPlotTool } from "./tools/plot.js";
 import { createGenerateTool } from "./tools/generate.js";
+import { createQuickBookTool } from "./tools/quickbook.js";
 import { createMemoryTool } from "./tools/memory.js";
 import { createReviewTool } from "./tools/review.js";
 import { createExportTool } from "./tools/export.js";
@@ -23,6 +24,7 @@ export function getNovelToolDefinitions(): NovelToolDefinition[] {
     createInitTool(),
     createPlotTool(),
     createGenerateTool(),
+    createQuickBookTool(),
     createMemoryTool(),
     createReviewTool(),
     createExportTool(),

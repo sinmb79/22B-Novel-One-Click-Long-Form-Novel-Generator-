@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace @22b/engine && npm run build --workspace @22b/mcp-server && npm run build --workspace @22b/cli && npm run build --workspace @22b/dashboard",
+    "build": "npm run build --workspace @22b/engine && npm run build --workspace @22b/quickbook && npm run build --workspace @22b/mcp-server && npm run build --workspace @22b/cli && npm run build --workspace @22b/dashboard",
     "dashboard:dev": "npm run dev --workspace @22b/dashboard",
     "dashboard:start": "npm run start --workspace @22b/dashboard",
     "test": "node --disable-warning=ExperimentalWarning ./node_modules/vitest/vitest.mjs"

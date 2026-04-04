@@ -1,112 +1,100 @@
 # 22B Novel
 
-A TypeScript-based workspace for planning, generating, reviewing, exporting, and browsing long-form novels.
+22B Novel is a TypeScript workspace for taking a story from topic to long-form draft, review, and ebook export.
 
-This is not just a "generate one chapter" script.  
-It is structured as a full production workspace for long-form fiction: define Author DNA, generate chapters, store memory in SQLite, run quality review, and export the result as EPUB or PDF.
+For the Korean-first guide, see [README.ko.md](./README.ko.md). For recent changes, see [RELEASE_NOTES.en.md](./RELEASE_NOTES.en.md).
 
-Related documents
+## 1. At a Glance
 
-- [Release Notes](./RELEASE_NOTES.en.md)
-- [한국어 문서](./README.ko.md)
-
-## 1. What This Project Does
-
-### One-line summary
-
-`Author DNA -> project init -> chapter generation -> memory and review -> EPUB/PDF export -> dashboard`
-
-### Overall flow
+`Topic input -> QuickBook auto design -> chapter generation -> memory and review -> EPUB/PDF export -> dashboard`
 
 ```mermaid
 flowchart LR
-  A["Author DNA JSON"] --> B["CLI / MCP: project init"]
-  B --> C["Chapter generation"]
-  C --> D["SQLite memory auto-commit"]
-  D --> E["Quality review"]
-  E --> F["Markdown / TXT / JSON / EPUB / PDF export"]
-  B --> G["Next.js Dashboard"]
-  D --> G
-  F --> G
+  A["Topic + References"] --> B["QuickBook"]
+  B --> C["Author DNA"]
+  C --> D["Plot Architecture"]
+  D --> E["Chapter Generation"]
+  E --> F["SQLite Memory + Review"]
+  F --> G["EPUB / PDF Export"]
+  F --> H["Dashboard"]
+  G --> H
 ```
 
-### Preview
-
-Dashboard home
-
-![Dashboard Home](./assets/dashboard-home.png)
-
-Project detail
-
-![Dashboard Project Detail](./assets/dashboard-project.png)
-
-### Core features currently included
-
-| Feature | Description |
-| --- | --- |
-| Author DNA validation | Validates philosophy, characters, style, world, and meta config with Zod |
-| Plot Architect | Builds a deterministic arc and chapter structure from Author DNA |
-| Chapter Generator | Assembles chapter context and beat prompts into prose generation |
-| Memory DB | Stores chapter summaries, characters, and foreshadowing state in SQLite |
-| Runtime Router | Supports `stub`, `OpenAI`, and `Anthropic` providers through env vars |
-| Quality Reviewer | Checks chapter length, protagonist continuity, banned phrases, and unresolved foreshadowing |
-| Export | Produces `markdown`, `txt`, `json`, `epub`, and `pdf` |
-| Dashboard | Web UI for project list, chapter previews, and exported artifacts |
-| MCP Tools | `novel.init`, `novel.plot`, `novel.generate`, `novel.memory`, `novel.review`, `novel.export`, `novel.cost`, `novel.status` |
-
-## 2. Project Structure
-
-```text
-packages/
-  engine/       core domain logic
-  cli/          local batch CLI
-  mcp-server/   MCP tool surface
-  dashboard/    Next.js App Router dashboard
-
-docs/
-  README.ko.md
-  README.en.md
-```
-
-### Package roles
+## 2. Package Layout
 
 | Package | Role |
 | --- | --- |
-| `@22b/engine` | Author DNA, plot, generation, review, export, memory DB |
-| `@22b/cli` | Terminal entrypoint for init, generate, review, export |
-| `@22b/mcp-server` | MCP tool definitions and server factory |
-| `@22b/dashboard` | Web UI for reading generated project state |
+| `@22b/engine` | Author DNA, plot, generation, quality, export, memory DB |
+| `@22b/quickbook` | Topic-driven automatic ebook pipeline |
+| `@22b/cli` | Local batch CLI |
+| `@22b/mcp-server` | MCP tool surface |
+| `@22b/dashboard` | Web UI for project browsing and QuickBook |
 
-## 3. Quick Start
+## 3. Install and Verify
 
-### 3-1. Requirements
+### Requirements
 
-- Node.js 24 or newer recommended
-- npm
-- Optional: `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`
+| Item | Recommended |
+| --- | --- |
+| Node.js | 24+ |
+| Package manager | npm |
+| Optional API keys | `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` |
 
-### 3-2. Install
+### Install
 
 ```bash
 npm install
 ```
 
-### 3-3. Verify the workspace
+### Verify
 
 ```bash
 npm run test -- --run
 npm run build
 ```
 
-### 3-4. Fastest usage path
+## 4. QuickBook Usage
 
-1. Prepare an Author DNA JSON file.
-2. Initialize a project through the CLI.
-3. Generate chapters.
-4. Review and inspect memory.
-5. Export to the format you need.
+QuickBook is the one-click path: give it a topic and optional references, and it generates a long-form draft through export.
 
-Example:
+### CLI example
+
+```bash
+node packages/cli/dist/index.js quickbook \
+  --topic "A palace maid surviving in Joseon" \
+  --genre "로맨스사극" \
+  --chapters 100 \
+  --style "웹소설체" \
+  --ref "./refs/maid-notes.pdf" "https://ko.wikipedia.org/wiki/궁녀" \
+  --format epub pdf
+```
+
+### Input options
+
+| Option | Description |
+| --- | --- |
+| `--topic` | Required story topic |
+| `--genre` | Optional genre override |
+| `--chapters` | Total chapter count |
+| `--style` | Style preset |
+| `--ref` | File path, URL, or plain text reference |
+| `--lang` | `ko` or `en` |
+| `--format` | One or more of `epub`, `pdf` |
+| `--output` | Output path |
+
+### Internal stages
+
+| Stage | Description |
+| --- | --- |
+| Reference Processing | Reads PDF, text, and URL sources and summarizes them |
+| Auto DNA | Builds Author DNA from topic and genre presets |
+| Auto Plot | Plans arcs and hook intervals |
+| Batch Generation | Generates chapters, writes memory, runs review |
+| Export | Produces EPUB / PDF |
+
+## 5. Core Engine Flow
+
+You can still use the workspace without QuickBook by providing an explicit Author DNA JSON.
 
 ```bash
 node packages/cli/dist/index.js init C:\\work novels my-author-dna.json
@@ -115,73 +103,52 @@ node packages/cli/dist/index.js review C:\\work\\novels\\my-project 1,2,3
 node packages/cli/dist/index.js export C:\\work\\novels\\my-project 1 3 My Novel --format epub
 ```
 
-## 4. Environment Variables
-
-### Provider selection
-
-The default provider is `stub`.  
-That means you can test the full workflow even without API keys.
-
-| Variable | Description |
-| --- | --- |
-| `NOVEL_PROVIDER` | Global default provider (`stub`, `openai`, `anthropic`) |
-| `NOVEL_MODEL` | Global default model name |
-| `NOVEL_PROVIDER_PLOT` | Plot provider override |
-| `NOVEL_MODEL_PLOT` | Plot model override |
-| `NOVEL_PROVIDER_PROSE` | Prose provider override |
-| `NOVEL_MODEL_PROSE` | Prose model override |
-| `NOVEL_PROVIDER_QA` | QA provider override |
-| `NOVEL_MODEL_QA` | QA model override |
-| `OPENAI_API_KEY` | Required for OpenAI |
-| `ANTHROPIC_API_KEY` | Required for Anthropic |
-| `OPENAI_BASE_URL` | Optional OpenAI-compatible gateway |
-| `ANTHROPIC_BASE_URL` | Optional Anthropic-compatible gateway |
-| `NOVEL_DASHBOARD_ROOT` | Root directory scanned by the dashboard |
-
-Example:
-
-```powershell
-$env:NOVEL_PROVIDER = "anthropic"
-$env:NOVEL_MODEL_PROSE = "claude-sonnet-4-6"
-$env:ANTHROPIC_API_KEY = "your-key"
-```
-
-## 5. CLI and MCP Tools
-
-### CLI commands
+## 6. CLI Commands
 
 | Command | Description |
 | --- | --- |
-| `help` | Print available commands |
-| `status` | Print engine status |
-| `init <rootDir> <projectName> <authorDnaPath>` | Create a project |
-| `generate <projectDirectory> <from> <to>` | Generate chapters |
-| `memory <projectDirectory> <query>` | Query project memory |
-| `review <projectDirectory> <chapterCsv>` | Review generated chapters |
-| `export <projectDirectory> <from> <to> <title> [--format <format>]` | Create exports |
-| `cost <chapters> [chapterWordCount]` | Estimate cost |
+| `help` | Show all commands |
+| `status` | Print workspace status |
+| `init` | Initialize a project from Author DNA |
+| `generate` | Generate a chapter range |
+| `memory` | Query project memory |
+| `review` | Run review |
+| `export` | Export generated output |
+| `cost` | Estimate generation cost |
+| `quickbook` | Run the automatic ebook pipeline |
 
-### MCP tools
+## 7. MCP Tools
 
 | Tool | Description |
 | --- | --- |
-| `novel.init` | Create a local project |
-| `novel.plot` | Build plot architecture |
-| `novel.generate` | Generate a chapter batch |
-| `novel.memory` | Query the memory DB |
-| `novel.review` | Run rule-based quality review |
-| `novel.export` | Export in multiple formats |
-| `novel.cost` | Estimate token cost |
-| `novel.status` | Show current status |
+| `novel.init` | Initialize a project |
+| `novel.plot` | Build plot |
+| `novel.generate` | Generate chapters |
+| `novel.memory` | Query memory |
+| `novel.review` | Run review |
+| `novel.export` | Export artifacts |
+| `novel.cost` | Estimate cost |
+| `novel.status` | Show status |
+| `novel.quickbook` | Run QuickBook from topic and references |
 
-## 6. Web Dashboard
+## 8. Environment Variables
 
-The dashboard is intended as a reading and monitoring surface.  
-Think of it as a project console, not yet a full editor.
+| Variable | Description |
+| --- | --- |
+| `NOVEL_PROVIDER` | Default provider: `stub`, `openai`, `anthropic` |
+| `NOVEL_MODEL_PLOT` | Plot model override |
+| `NOVEL_MODEL_PROSE` | Prose model override |
+| `NOVEL_MODEL_QA` | QA model override |
+| `OPENAI_API_KEY` | Required for OpenAI |
+| `ANTHROPIC_API_KEY` | Required for Anthropic |
+| `NOVEL_PROJECTS_ROOT` | Default root for QuickBook-created projects |
+| `NOVEL_DASHBOARD_ROOT` | Root scanned by the dashboard |
 
-### Run it
+The `stub` provider lets you test the full flow without live model keys.
 
-Set the root directory, then start the dashboard workspace.
+## 9. Dashboard
+
+### Run
 
 ```powershell
 $env:NOVEL_DASHBOARD_ROOT = "C:\\work\\novels"
@@ -194,76 +161,33 @@ Default address:
 http://localhost:3000
 ```
 
-### What you can see
+### Routes
 
-- Project list
-- Chapter counts per project
-- Exported artifact filenames
-- Chapter previews
-
-## 7. What the Quality Reviewer Checks
-
-The current reviewer intentionally focuses on concrete rules we can validate reliably with the data already present.
-
-| Rule | Description |
+| Route | Description |
 | --- | --- |
-| `length` | Warns when the chapter is too short relative to the configured target |
-| `consistency` | Warns when the protagonist name does not appear in the chapter text |
-| `voice` | Checks whether banned phrases from `neverDo` appear in the text |
-| `foreshadow` | Warns about unresolved foreshadowing seeded in earlier chapters |
-| `missing-file` | Critical issue when a requested chapter file is missing |
+| `/` | Project list |
+| `/projects/[projectName]` | Project detail with chapter previews and exports |
+| `/quickbook` | Topic-driven QuickBook form |
 
-## 8. Export Formats
+### Preview
 
-| Format | Output |
+![Dashboard Home](./assets/dashboard-home.png)
+![Project Detail](./assets/dashboard-project.png)
+
+## 10. Current Status
+
+| Item | Status |
 | --- | --- |
-| `markdown` | Combined manuscript `.md` |
-| `txt` | Plain text manuscript `.txt` |
-| `json` | Structured JSON with chapters |
-| `epub` | EPUB for e-readers |
-| `pdf` | PDF for sharing and review |
+| Tests | `41` passing |
+| Build | Full workspace build passes |
+| Export | `markdown`, `txt`, `json`, `epub`, `pdf` |
+| Providers | `stub`, OpenAI, Anthropic |
+| QuickBook | Wired into CLI, MCP, and Dashboard |
 
-Examples:
+## 11. Notes
 
-```bash
-node packages/cli/dist/index.js export C:\\work\\novels\\my-project 1 10 My Novel --format pdf
-node packages/cli/dist/index.js export C:\\work\\novels\\my-project 1 10 My Novel --format json
-```
-
-## 9. Who This Is For
-
-- Solo writers who want to generate long-form web novel drafts quickly
-- Small teams that want a consistent Author DNA workflow
-- Developers who want to connect novel tooling to MCP-based agents
-- Users who want generation, memory, review, and export in one pipeline
-
-## 10. Current Status and Notes
-
-### Working well right now
-
-- Full test suite passes
-- Full build passes
-- Dist-based CLI smoke test passes
-- OpenAI and Anthropic provider support is included
-- EPUB and PDF generation are included
-- Dashboard build passes
-
-### Things to keep in mind
-
-- `node:sqlite` may still print an ExperimentalWarning on Node 24.
-- The current dashboard is focused on reading and inspection.
-- The quality reviewer is a practical first-pass reviewer, not a literary critic.
-
-## 11. Developer Commands
-
-```bash
-npm install
-npm run test -- --run
-npm run build
-npm run dashboard:dev
-```
-
-## 12. Public Repository Safety
-
-This repository is prepared for public sharing.  
-Keep `.env`, API keys, personal data, caches, and generated junk out of commits, and preserve the current `.gitignore` rules.
+| Item | Description |
+| --- | --- |
+| `node:sqlite` warning | Node 24 may still print an ExperimentalWarning, but runtime behavior is fine |
+| Reviewer scope | The current reviewer is rule-based, not a literary judge |
+| Dashboard warning | Next/Turbopack may still print one filesystem tracing warning while build remains successful |

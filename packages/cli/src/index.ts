@@ -12,6 +12,43 @@ import {
   queryProjectMemory,
   reviewGeneratedChapters,
 } from "@22b/engine";
+import { runQuickBook } from "@22b/quickbook";
+
+function parseLongOptions(args: string[]): {
+  options: Record<string, string[]>;
+  positionals: string[];
+} {
+  const options: Record<string, string[]> = {};
+  const positionals: string[] = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    const token = args[index]!;
+
+    if (!token.startsWith("--")) {
+      positionals.push(token);
+      continue;
+    }
+
+    const key = token.slice(2);
+    const values: string[] = [];
+
+    while (index + 1 < args.length && !args[index + 1]!.startsWith("--")) {
+      values.push(args[index + 1]!);
+      index += 1;
+    }
+
+    options[key] = values.length > 0 ? values : ["true"];
+  }
+
+  return { options, positionals };
+}
+
+function parseList(values: string[] | undefined, fallback: string[] = []): string[] {
+  return (values ?? fallback)
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
 
 async function readJsonFile(path: string): Promise<unknown> {
   const text = await readFile(path, "utf8");
@@ -31,6 +68,7 @@ export async function runCli(args: string[]): Promise<string[]> {
       "  review <projectDirectory> <chapterCsv>",
       "  export <projectDirectory> <from> <to> <title>",
       "  cost <chapters> [chapterWordCount]",
+      "  quickbook --topic <topic> [--genre <genre>] [--chapters <n>]",
       "  status",
     ];
   }
@@ -39,7 +77,7 @@ export async function runCli(args: string[]): Promise<string[]> {
     return [
       "22B Novel phase 0 foundation",
       `Engine version: ${engineVersion}`,
-      "Available commands: init, generate, memory, review, export, cost, status",
+      "Available commands: init, generate, memory, review, export, cost, quickbook, status",
     ];
   }
 
@@ -170,6 +208,41 @@ export async function runCli(args: string[]): Promise<string[]> {
     });
 
     return [JSON.stringify(estimate, null, 2)];
+  }
+
+  if (command === "quickbook") {
+    const { options } = parseLongOptions(rest);
+    const topic = options.topic?.join(" ").trim();
+
+    if (!topic) {
+      return [
+        "Usage: quickbook --topic <topic> [--genre <genre>] [--chapters <n>] [--style <style>] [--ref <pathOrUrl...>] [--lang <lang>] [--format <format...>] [--output <path>]",
+      ];
+    }
+
+    const references = parseList(options.ref).map((value) => ({
+      type: value.startsWith("http://") || value.startsWith("https://") ? "url" : "file",
+      value,
+    })) as Array<{ type: "url" | "file"; value: string }>;
+
+    const result = await runQuickBook({
+      topic,
+      genre: options.genre?.join(" "),
+      chapters: options.chapters?.[0] ? Number(options.chapters[0]) : undefined,
+      style: options.style?.join(" ") ?? "웹소설체",
+      references,
+      language: options.lang?.[0] === "en" ? "en" : "ko",
+      format: parseList(options.format, ["epub"]) as Array<"epub" | "pdf">,
+      outputPath: options.output?.join(" "),
+    });
+
+    return [
+      "QuickBook complete!",
+      `주제: ${topic}`,
+      `총 분량: ${result.stats.totalChapters}화 / ${result.stats.totalWords} words`,
+      `총 비용: $${result.stats.totalCost.toFixed(2)}`,
+      ...result.outputFiles.map((file) => `${file.format.toUpperCase()}: ${file.path}`),
+    ];
   }
 
   return [`Unknown command: ${command}`, "Run `help` to see available commands."];

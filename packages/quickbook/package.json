@@ -1,5 +1,5 @@
 {
-  "name": "@22b/cli",
+  "name": "@22b/quickbook",
   "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@22b/engine": "file:../engine",
-    "@22b/quickbook": "file:../quickbook"
+    "cheerio": "^1.1.2",
+    "pdf-parse": "^1.1.1"
   }
 }

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@22b/engine": "file:../engine",
+    "@22b/quickbook": "file:../quickbook",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.3.6"
   }

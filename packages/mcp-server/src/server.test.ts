@@ -12,6 +12,7 @@ describe("createNovelMcpServer", () => {
         "novel.init",
         "novel.plot",
         "novel.generate",
+        "novel.quickbook",
         "novel.memory",
         "novel.review",
         "novel.export",

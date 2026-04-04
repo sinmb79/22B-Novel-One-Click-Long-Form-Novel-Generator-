@@ -1,112 +1,100 @@
 # 22B Novel
 
-긴 장편 웹소설을 한 번에 설계하고, 생성하고, 점검하고, 내보내기까지 이어주는 TypeScript 기반 작업 도구입니다.
+주제 하나로 장편 소설 초안부터 전자책 export까지 이어서 처리하는 TypeScript 기반 소설 제작 워크스페이스입니다.
 
-이 프로젝트는 "소설 초안 한 편을 뽑는 스크립트"가 아니라, 장편 제작 흐름 전체를 다루기 위한 작업 공간입니다.  
-Author DNA로 작품 성격을 정의하고, 챕터를 생성하고, 메모리 DB에 누적하고, 품질 리뷰를 돌리고, 마지막에는 EPUB/PDF까지 뽑을 수 있게 구성했습니다.
+영문 문서는 [README.en.md](./README.en.md), 변경 이력은 [RELEASE_NOTES.ko.md](./RELEASE_NOTES.ko.md)에서 볼 수 있습니다.
 
-관련 문서
+## 1. 한눈에 보기
 
-- [릴리즈 노트](./RELEASE_NOTES.ko.md)
-- [English documentation](./README.en.md)
-
-## 1. 이 프로젝트가 하는 일
-
-### 한 줄 요약
-
-`작가 설정 → 프로젝트 초기화 → 챕터 생성 → 메모리/리뷰 확인 → EPUB/PDF export → 대시보드 확인`
-
-### 전체 흐름
+`주제 입력 -> QuickBook 자동 설계 -> 챕터 생성 -> 메모리/리뷰 -> EPUB/PDF export -> 대시보드 확인`
 
 ```mermaid
 flowchart LR
-  A["Author DNA JSON"] --> B["CLI / MCP: 프로젝트 초기화"]
-  B --> C["챕터 생성"]
-  C --> D["SQLite Memory DB 자동 기록"]
-  D --> E["품질 리뷰"]
-  E --> F["Markdown / TXT / JSON / EPUB / PDF Export"]
-  B --> G["Next.js Dashboard"]
-  D --> G
-  F --> G
+  A["Topic + References"] --> B["QuickBook"]
+  B --> C["Author DNA"]
+  C --> D["Plot Architecture"]
+  D --> E["Chapter Generation"]
+  E --> F["SQLite Memory + Review"]
+  F --> G["EPUB / PDF Export"]
+  F --> H["Dashboard"]
+  G --> H
 ```
 
-### 화면 미리보기
-
-홈 대시보드
-
-![대시보드 홈](./assets/dashboard-home.png)
-
-프로젝트 상세
-
-![대시보드 프로젝트 상세](./assets/dashboard-project.png)
-
-### 현재 들어있는 핵심 기능
-
-| 기능 | 설명 |
-| --- | --- |
-| Author DNA 검증 | 작품 철학, 캐릭터, 스타일, 세계관, 메타 정보를 Zod로 검증 |
-| Plot Architect | Author DNA를 바탕으로 장편용 기본 아크/챕터 구조 생성 |
-| Chapter Generator | 챕터별 컨텍스트와 beat prompt를 조합해 본문 생성 |
-| Memory DB | SQLite에 챕터 요약, 등장인물, 복선 상태를 누적 저장 |
-| Runtime Router | `stub`, `OpenAI`, `Anthropic` provider를 환경변수로 선택 가능 |
-| Quality Reviewer | 길이, 주인공 일관성, 금지 표현, 미회수 복선 경고 |
-| Export | `markdown`, `txt`, `json`, `epub`, `pdf` 생성 |
-| Dashboard | 프로젝트 목록, 챕터 프리뷰, export 결과를 웹에서 확인 |
-| MCP Tools | `novel.init`, `novel.plot`, `novel.generate`, `novel.memory`, `novel.review`, `novel.export`, `novel.cost`, `novel.status` |
-
-## 2. 폴더 구조
-
-```text
-packages/
-  engine/       핵심 도메인 로직
-  cli/          로컬 배치용 CLI
-  mcp-server/   MCP 도구 표면
-  dashboard/    Next.js App Router 대시보드
-
-docs/
-  README.ko.md
-  README.en.md
-```
-
-### 패키지 역할
+## 2. 패키지 구성
 
 | 패키지 | 역할 |
 | --- | --- |
-| `@22b/engine` | Author DNA, plot, generation, review, export, memory DB |
-| `@22b/cli` | 터미널에서 프로젝트를 생성/생성/리뷰/export |
-| `@22b/mcp-server` | MCP 도구 정의와 서버 팩토리 |
-| `@22b/dashboard` | 생성된 프로젝트를 읽는 웹 UI |
+| `@22b/engine` | Author DNA, plot, generation, quality, export, memory DB |
+| `@22b/quickbook` | 주제 기반 자동 전자책 파이프라인 |
+| `@22b/cli` | 로컬 배치 실행 CLI |
+| `@22b/mcp-server` | MCP 도구 제공 |
+| `@22b/dashboard` | 프로젝트와 QuickBook 실행용 웹 UI |
 
-## 3. 빠른 시작
+## 3. 설치와 검증
 
-### 3-1. 준비물
+### 요구 사항
 
-- Node.js 24 이상 권장
-- npm
-- 선택 사항: `OPENAI_API_KEY` 또는 `ANTHROPIC_API_KEY`
+| 항목 | 권장값 |
+| --- | --- |
+| Node.js | 24 이상 |
+| 패키지 매니저 | npm |
+| 선택 API 키 | `OPENAI_API_KEY` 또는 `ANTHROPIC_API_KEY` |
 
-### 3-2. 설치
+### 설치
 
 ```bash
 npm install
 ```
 
-### 3-3. 기본 검증
+### 검증
 
 ```bash
 npm run test -- --run
 npm run build
 ```
 
-### 3-4. 가장 빠른 사용 순서
+## 4. QuickBook 사용법
 
-1. Author DNA JSON 파일을 준비합니다.
-2. CLI로 프로젝트를 초기화합니다.
-3. 챕터를 생성합니다.
-4. 리뷰와 메모리를 확인합니다.
-5. 원하는 포맷으로 export 합니다.
+QuickBook은 보스가 Author DNA JSON을 직접 만들지 않아도, 주제와 참고 자료만으로 장편 초안을 끝까지 생성하는 흐름입니다.
 
-예시:
+### CLI 예시
+
+```bash
+node packages/cli/dist/index.js quickbook ^
+  --topic "조선시대 궁녀의 생존기" ^
+  --genre "로맨스사극" ^
+  --chapters 100 ^
+  --style "웹소설체" ^
+  --ref "./refs/궁녀-자료.pdf" "https://ko.wikipedia.org/wiki/궁녀" ^
+  --format epub pdf
+```
+
+### 입력 옵션
+
+| 옵션 | 설명 |
+| --- | --- |
+| `--topic` | 필수. 작품 주제 |
+| `--genre` | 선택. 미지정 시 주제에서 추론 |
+| `--chapters` | 총 회차 수 |
+| `--style` | 문체 프리셋 |
+| `--ref` | 파일 경로, URL, 또는 텍스트 레퍼런스 |
+| `--lang` | `ko` 또는 `en` |
+| `--format` | `epub`, `pdf` 중 하나 이상 |
+| `--output` | 결과 저장 경로 |
+
+### 내부 동작
+
+| 단계 | 설명 |
+| --- | --- |
+| Reference Processing | PDF, 텍스트, URL 자료를 읽고 요약 |
+| Auto DNA | 장르 프리셋과 주제를 바탕으로 Author DNA 생성 |
+| Auto Plot | 회차 수에 맞춰 아크와 훅 배치 |
+| Batch Generation | 챕터 생성, 메모리 기록, 리뷰 수행 |
+| Export | EPUB / PDF 생성 |
+
+## 5. 기존 엔진 흐름 사용법
+
+QuickBook 없이도 Author DNA 기반 수동 흐름을 그대로 쓸 수 있습니다.
 
 ```bash
 node packages/cli/dist/index.js init C:\\work novels my-author-dna.json
@@ -115,73 +103,52 @@ node packages/cli/dist/index.js review C:\\work\\novels\\my-project 1,2,3
 node packages/cli/dist/index.js export C:\\work\\novels\\my-project 1 3 My Novel --format epub
 ```
 
-## 4. 환경변수
-
-### provider 선택
-
-기본값은 `stub` 입니다.  
-즉, API 키가 없어도 테스트용 생성 흐름은 돌릴 수 있습니다.
-
-| 변수 | 설명 |
-| --- | --- |
-| `NOVEL_PROVIDER` | 전체 기본 provider (`stub`, `openai`, `anthropic`) |
-| `NOVEL_MODEL` | 전체 기본 모델명 |
-| `NOVEL_PROVIDER_PLOT` | plot 전용 provider override |
-| `NOVEL_MODEL_PLOT` | plot 전용 모델 override |
-| `NOVEL_PROVIDER_PROSE` | prose 전용 provider override |
-| `NOVEL_MODEL_PROSE` | prose 전용 모델 override |
-| `NOVEL_PROVIDER_QA` | QA 전용 provider override |
-| `NOVEL_MODEL_QA` | QA 전용 모델 override |
-| `OPENAI_API_KEY` | OpenAI 사용 시 필요 |
-| `ANTHROPIC_API_KEY` | Anthropic 사용 시 필요 |
-| `OPENAI_BASE_URL` | OpenAI 호환 게이트웨이 사용 시 선택 |
-| `ANTHROPIC_BASE_URL` | Anthropic 호환 게이트웨이 사용 시 선택 |
-| `NOVEL_DASHBOARD_ROOT` | 대시보드가 읽을 프로젝트 루트 경로 |
-
-예시:
-
-```powershell
-$env:NOVEL_PROVIDER = "anthropic"
-$env:NOVEL_MODEL_PROSE = "claude-sonnet-4-6"
-$env:ANTHROPIC_API_KEY = "your-key"
-```
-
-## 5. CLI와 MCP 도구
-
-### CLI 명령
+## 6. CLI 명령 목록
 
 | 명령 | 설명 |
 | --- | --- |
-| `help` | 사용 가능한 명령 출력 |
-| `status` | 현재 엔진 상태 출력 |
-| `init <rootDir> <projectName> <authorDnaPath>` | 프로젝트 생성 |
-| `generate <projectDirectory> <from> <to>` | 챕터 생성 |
-| `memory <projectDirectory> <query>` | 메모리 조회 |
-| `review <projectDirectory> <chapterCsv>` | 챕터 리뷰 |
-| `export <projectDirectory> <from> <to> <title> [--format <format>]` | export 생성 |
-| `cost <chapters> [chapterWordCount]` | 예상 비용 계산 |
+| `help` | 전체 명령 표시 |
+| `status` | 현재 워크스페이스 상태 요약 |
+| `init` | Author DNA 기반 프로젝트 초기화 |
+| `generate` | 챕터 범위 생성 |
+| `memory` | 메모리 DB 질의 |
+| `review` | 리뷰 실행 |
+| `export` | 결과물 export |
+| `cost` | 비용 추정 |
+| `quickbook` | 주제 기반 전자책 자동 생성 |
 
-### MCP 도구
+## 7. MCP 도구 목록
 
-| 도구명 | 설명 |
+| 도구 | 설명 |
 | --- | --- |
-| `novel.init` | 로컬 프로젝트 생성 |
-| `novel.plot` | Plot architecture 생성 |
-| `novel.generate` | 챕터 묶음 생성 |
-| `novel.memory` | 메모리 DB 질의 |
-| `novel.review` | 규칙 기반 품질 리뷰 |
-| `novel.export` | 여러 포맷으로 export |
+| `novel.init` | 프로젝트 초기화 |
+| `novel.plot` | 플롯 생성 |
+| `novel.generate` | 챕터 생성 |
+| `novel.memory` | 메모리 조회 |
+| `novel.review` | 리뷰 실행 |
+| `novel.export` | export 생성 |
 | `novel.cost` | 비용 추정 |
-| `novel.status` | 현재 상태 요약 |
+| `novel.status` | 상태 요약 |
+| `novel.quickbook` | 주제 기반 QuickBook 생성 |
 
-## 6. 웹 대시보드
+## 8. 환경 변수
 
-대시보드는 생성된 프로젝트를 읽는 용도입니다.  
-편집기라기보다 "프로젝트 상황판"에 가깝습니다.
+| 변수 | 설명 |
+| --- | --- |
+| `NOVEL_PROVIDER` | 기본 provider (`stub`, `openai`, `anthropic`) |
+| `NOVEL_MODEL_PLOT` | plot 전용 모델 오버라이드 |
+| `NOVEL_MODEL_PROSE` | prose 전용 모델 오버라이드 |
+| `NOVEL_MODEL_QA` | qa 전용 모델 오버라이드 |
+| `OPENAI_API_KEY` | OpenAI 사용 시 필요 |
+| `ANTHROPIC_API_KEY` | Anthropic 사용 시 필요 |
+| `NOVEL_PROJECTS_ROOT` | QuickBook 생성 기본 루트 |
+| `NOVEL_DASHBOARD_ROOT` | 대시보드가 읽을 프로젝트 루트 |
+
+`stub` provider를 쓰면 API 키 없이도 전체 흐름 테스트가 가능합니다.
+
+## 9. 대시보드
 
 ### 실행
-
-루트 경로를 지정한 뒤 dashboard 패키지를 실행합니다.
 
 ```powershell
 $env:NOVEL_DASHBOARD_ROOT = "C:\\work\\novels"
@@ -194,76 +161,33 @@ npm run dashboard:dev
 http://localhost:3000
 ```
 
-### 볼 수 있는 것
+### 화면
 
-- 프로젝트 목록
-- 프로젝트별 챕터 개수
-- export 결과 파일 목록
-- 챕터 프리뷰
-
-## 7. 품질 리뷰는 무엇을 검사하나
-
-현재 리뷰어는 과장된 AI 평론을 하지 않고, 지금 데이터로 확실히 잡을 수 있는 규칙 위주로 동작합니다.
-
-| 규칙 | 설명 |
+| 경로 | 설명 |
 | --- | --- |
-| `length` | 챕터 분량이 목표치 대비 너무 짧은지 검사 |
-| `consistency` | 주인공 이름이 챕터 본문에 아예 없으면 경고 |
-| `voice` | Author DNA의 `neverDo` 문구가 본문에 들어갔는지 검사 |
-| `foreshadow` | 이전 챕터에서 심은 복선이 아직 미회수 상태인지 경고 |
-| `missing-file` | 지정한 챕터 파일이 아예 없을 때 치명 오류 |
+| `/` | 프로젝트 목록 |
+| `/projects/[projectName]` | 프로젝트 상세, 챕터 프리뷰, export 목록 |
+| `/quickbook` | 주제 기반 전자책 생성 폼 |
 
-## 8. export 포맷
+### 미리보기
 
-| 포맷 | 결과 |
+![대시보드 홈](./assets/dashboard-home.png)
+![프로젝트 상세](./assets/dashboard-project.png)
+
+## 10. 현재 상태
+
+| 항목 | 상태 |
 | --- | --- |
-| `markdown` | 합본 원고 `.md` |
-| `txt` | 텍스트 원고 `.txt` |
-| `json` | 챕터 구조 포함 JSON |
-| `epub` | 전자책 리더용 EPUB |
-| `pdf` | 공유/검토용 PDF |
+| 테스트 | `41`개 통과 |
+| 빌드 | 전체 통과 |
+| Export | `markdown`, `txt`, `json`, `epub`, `pdf` 지원 |
+| Provider | `stub`, OpenAI, Anthropic 지원 |
+| QuickBook | CLI, MCP, Dashboard 연결 완료 |
 
-예시:
+## 11. 주의 사항
 
-```bash
-node packages/cli/dist/index.js export C:\\work\\novels\\my-project 1 10 My Novel --format pdf
-node packages/cli/dist/index.js export C:\\work\\novels\\my-project 1 10 My Novel --format json
-```
-
-## 9. 누구에게 맞는가
-
-- 장편 웹소설 초안을 빠르게 돌리고 싶은 개인 작가
-- Author DNA 기반으로 톤 일관성을 관리하고 싶은 팀
-- MCP로 외부 에이전트와 붙여서 작업하고 싶은 개발자
-- 장편 생성 과정에서 복선, 리뷰, export를 한 흐름으로 다루고 싶은 사용자
-
-## 10. 현재 상태와 주의점
-
-### 지금 잘 되는 것
-
-- 전체 테스트 통과
-- 전체 빌드 통과
-- dist 기준 CLI 스모크 통과
-- OpenAI / Anthropic provider 연결
-- EPUB / PDF 생성
-- Dashboard build 통과
-
-### 알고 있어야 할 점
-
-- `node:sqlite`는 Node 24에서 ExperimentalWarning이 보일 수 있습니다.
-- 현재 dashboard는 "읽기용" 중심입니다.
-- 품질 리뷰는 규칙 기반 1차 검수에 가깝고, 문학적 평가기까지는 아닙니다.
-
-## 11. 개발자용 명령
-
-```bash
-npm install
-npm run test -- --run
-npm run build
-npm run dashboard:dev
-```
-
-## 12. 라이선스와 공개 주의
-
-이 저장소는 공개 공유를 전제로 정리되어 있습니다.  
-`.env`, API 키, 개인 데이터, 생성 캐시를 커밋하지 않도록 `.gitignore`를 유지하세요.
+| 항목 | 설명 |
+| --- | --- |
+| `node:sqlite` 경고 | Node 24에서 ExperimentalWarning이 보일 수 있으나 동작은 정상 |
+| 리뷰 성격 | 현재 리뷰어는 문학 평론보다 규칙 검증에 가까움 |
+| Dashboard 경고 | Next/Turbopack에서 파일시스템 추적 관련 경고 1개가 남을 수 있으나 빌드는 통과 |
